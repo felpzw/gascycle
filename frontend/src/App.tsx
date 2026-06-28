@@ -3,6 +3,7 @@ import { Activity, Wind } from 'lucide-react'
 import { getHealth } from './lib/api'
 import { CompressionSimulator } from './components/CompressionSimulator'
 import { FillingSimulator } from './components/FillingSimulator'
+import { ActuatorSimulator } from './components/ActuatorSimulator'
 
 type Status = 'checking' | 'online' | 'offline'
 
@@ -20,6 +21,13 @@ const MODULES = [
     title: 'Módulo 2 — Enchimento de reservatório',
     desc: 'Volume de controle transiente (tanque rígido, W = 0): estado final pelo balanço integrado de massa e energia a partir de uma linha de alimentação.',
     render: () => <FillingSimulator />,
+  },
+  {
+    id: 'actuator',
+    tab: 'Módulo 3 — Atuador',
+    title: 'Módulo 3 — Atuador mecânico',
+    desc: 'Sistema fechado (pistão-cilindro): expansão isobárica, isotérmica ou politrópica com Q − W = ΔU e trabalho de fronteira W = ∫P dV.',
+    render: () => <ActuatorSimulator />,
   },
 ] as const
 
