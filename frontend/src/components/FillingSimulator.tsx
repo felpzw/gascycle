@@ -2,27 +2,30 @@ import { useEffect, useState } from 'react'
 import { Loader2, Play } from 'lucide-react'
 import axios from 'axios'
 import {
-  computeCompression,
+  computeFilling,
   getFluids,
-  type CompressionInput,
-  type CompressionOutput,
+  type FillingInput,
+  type FillingOutput,
 } from '../lib/api'
 import { FluidSelect, ModelToggle, NumberField, ResultRow } from './ui'
 
-const DEFAULTS: CompressionInput = {
+const DEFAULTS: FillingInput = {
   fluid: 'R134a',
   model: 'real',
-  P_in: 100,
-  T_in: 25,
-  P_out: 300,
-  mass_flow: 0.5,
-  efficiency_isen: 0.85,
+  volume: 100,
+  P_initial: 120,
+  T_initial: 20,
+  P_line: 800,
+  T_line: 50,
+  P_final: 700,
+  heat: 0,
+  mass_flow_in: 0.02,
 }
 
-export function CompressionSimulator() {
+export function FillingSimulator() {
   const [fluids, setFluids] = useState<string[]>([DEFAULTS.fluid])
-  const [input, setInput] = useState<CompressionInput>(DEFAULTS)
-  const [result, setResult] = useState<CompressionOutput | null>(null)
+  const [input, setInput] = useState<FillingInput>(DEFAULTS)
+  const [result, setResult] = useState<FillingOutput | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -34,17 +37,15 @@ export function CompressionSimulator() {
       })
   }, [])
 
-  const set = <K extends keyof CompressionInput>(
-    key: K,
-    value: CompressionInput[K],
-  ) => setInput((prev) => ({ ...prev, [key]: value }))
+  const set = <K extends keyof FillingInput>(key: K, value: FillingInput[K]) =>
+    setInput((prev) => ({ ...prev, [key]: value }))
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
     setError(null)
     try {
-      setResult(await computeCompression(input))
+      setResult(await computeFilling(input))
     } catch (err) {
       if (axios.isAxiosError(err)) {
         setError(err.response?.data?.detail ?? 'Falha ao calcular.')
@@ -72,35 +73,52 @@ export function CompressionSimulator() {
           />
           <ModelToggle value={input.model} onChange={(v) => set('model', v)} />
           <NumberField
-            label="Pressão entrada"
-            unit="kPa"
-            value={input.P_in}
-            onChange={(v) => set('P_in', v)}
+            label="Volume do tanque"
+            unit="L"
+            value={input.volume}
+            onChange={(v) => set('volume', v)}
           />
           <NumberField
-            label="Temp. entrada"
+            label="Calor trocado"
+            unit="kJ"
+            value={input.heat}
+            onChange={(v) => set('heat', v)}
+          />
+          <NumberField
+            label="Pressão inicial"
+            unit="kPa"
+            value={input.P_initial}
+            onChange={(v) => set('P_initial', v)}
+          />
+          <NumberField
+            label="Temp. inicial"
             unit="°C"
-            value={input.T_in}
-            onChange={(v) => set('T_in', v)}
+            value={input.T_initial}
+            onChange={(v) => set('T_initial', v)}
           />
           <NumberField
-            label="Pressão saída"
+            label="Pressão da linha"
             unit="kPa"
-            value={input.P_out}
-            onChange={(v) => set('P_out', v)}
+            value={input.P_line}
+            onChange={(v) => set('P_line', v)}
           />
           <NumberField
-            label="Vazão mássica"
+            label="Temp. da linha"
+            unit="°C"
+            value={input.T_line}
+            onChange={(v) => set('T_line', v)}
+          />
+          <NumberField
+            label="Pressão final"
+            unit="kPa"
+            value={input.P_final}
+            onChange={(v) => set('P_final', v)}
+          />
+          <NumberField
+            label="Vazão de entrada"
             unit="kg/s"
-            value={input.mass_flow}
-            onChange={(v) => set('mass_flow', v)}
-          />
-          <NumberField
-            label="Efic. isentrópica"
-            unit="0-1"
-            step={0.01}
-            value={input.efficiency_isen}
-            onChange={(v) => set('efficiency_isen', v)}
+            value={input.mass_flow_in ?? 0}
+            onChange={(v) => set('mass_flow_in', v || null)}
           />
         </div>
 
@@ -129,29 +147,31 @@ export function CompressionSimulator() {
         {result ? (
           <div>
             <ResultRow
-              label="Potência requerida"
-              value={`${result.power_required.toFixed(3)} kW`}
+              label="Massa inicial"
+              value={`${result.m_initial.toFixed(4)} kg`}
             />
             <ResultRow
-              label="Trabalho específico"
-              value={`${result.work_specific.toFixed(2)} kJ/kg`}
+              label="Massa final"
+              value={`${result.m_final.toFixed(4)} kg`}
             />
             <ResultRow
-              label="Temperatura de saída"
-              value={`${result.T_out.toFixed(2)} °C`}
+              label="Massa adicionada"
+              value={`${result.m_added.toFixed(4)} kg`}
             />
             <ResultRow
-              label="Temp. saída isentrópica"
-              value={`${result.T_out_isentropic.toFixed(2)} °C`}
+              label="Temperatura final"
+              value={`${result.T_final.toFixed(2)} °C`}
             />
             <ResultRow
-              label="Δh real"
-              value={`${result.enthalpy_change.toFixed(2)} kJ/kg`}
+              label="Energia interna final"
+              value={`${result.u_final.toFixed(2)} kJ/kg`}
             />
-            <ResultRow
-              label="Δh isentrópico"
-              value={`${result.enthalpy_change_isentropic.toFixed(2)} kJ/kg`}
-            />
+            {result.fill_time != null && (
+              <ResultRow
+                label="Tempo de enchimento"
+                value={`${result.fill_time.toFixed(1)} s`}
+              />
+            )}
             <p className="mt-4 text-xs text-slate-500">
               Modelo: {result.model === 'real' ? 'gás real (CoolProp)' : 'gás ideal'} · Fluido: {result.fluid}
             </p>
