@@ -86,3 +86,38 @@ export async function computeFilling(
   const { data } = await api.post<FillingOutput>('/api/filling', input)
   return data
 }
+
+// ===== Módulo 3 — Atuador mecânico =====
+
+export type Process = 'isobaric' | 'isothermal' | 'polytropic'
+
+export interface ActuatorInput {
+  fluid: string
+  model: PropertyModel
+  mass: number // kg
+  P1: number // kPa
+  T1: number // °C
+  process: Process
+  ratio: number // V2/V1
+  polytropic_n?: number | null
+}
+
+export interface ActuatorOutput {
+  fluid: string
+  model: PropertyModel
+  process: Process
+  V1: number // L
+  V2: number // L
+  P2: number // kPa
+  T2: number // °C
+  work: number // kJ
+  delta_U: number // kJ
+  heat: number // kJ
+}
+
+export async function computeActuator(
+  input: ActuatorInput,
+): Promise<ActuatorOutput> {
+  const { data } = await api.post<ActuatorOutput>('/api/actuator', input)
+  return data
+}
