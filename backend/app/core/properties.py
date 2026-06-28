@@ -94,6 +94,15 @@ def cp0(fluid: str, T: float) -> float:
     return PropsSI("Cp0mass", "T", T, "P", 101325.0, name)
 
 
+def coolprop(output: str, n1: str, v1: float, n2: str, v2: float, fluid: str) -> float:
+    """Acesso direto à CoolProp.PropsSI com validação do fluido.
+
+    Útil para pares de estado baseados em massa específica (P-D, T-D), que são
+    robustos inclusive na região bifásica — usados pelo motor do Módulo 3.
+    """
+    return PropsSI(output, n1, v1, n2, v2, _coolprop_name(fluid))
+
+
 def state_from_PT(fluid: str, P: float, T: float, model: PropertyModel) -> State:
     """Estado completo a partir de pressão e temperatura."""
     name = _coolprop_name(fluid)
