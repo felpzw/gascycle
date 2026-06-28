@@ -46,6 +46,13 @@ class State:
     T: float  # K
     h: float  # J/kg
     s: float  # J/kg·K
+    u: float  # J/kg (energia interna específica)
+    rho: float  # kg/m³ (massa específica)
+
+    @property
+    def v(self) -> float:
+        """Volume específico [m³/kg]."""
+        return 1.0 / self.rho
 
 
 def _coolprop_name(fluid: str) -> str:
@@ -64,6 +71,22 @@ def gas_constant(fluid: str) -> float:
     return R_UNIVERSAL / molar_mass
 
 
+def temperature_bounds(fluid: str) -> tuple[float, float]:
+    """Faixa de temperatura válida do fluido na CoolProp [K]."""
+    name = _coolprop_name(fluid)
+    return PropsSI("Tmin", name), PropsSI("Tmax", name)
+
+
+def critical_pressure(fluid: str) -> float:
+    """Pressão crítica do fluido [Pa]."""
+    return PropsSI("Pcrit", _coolprop_name(fluid))
+
+
+def saturation_temperature(fluid: str, P: float) -> float:
+    """Temperatura de saturação à pressão P (vapor saturado) [K]."""
+    return PropsSI("T", "P", P, "Q", 1, _coolprop_name(fluid))
+
+
 def cp0(fluid: str, T: float) -> float:
     """Calor específico de gás ideal cp0(T)  [J/kg·K]."""
     name = _coolprop_name(fluid)
@@ -77,16 +100,20 @@ def state_from_PT(fluid: str, P: float, T: float, model: PropertyModel) -> State
     if model is PropertyModel.REAL:
         h = PropsSI("H", "P", P, "T", T, name)
         s = PropsSI("S", "P", P, "T", T, name)
-        return State(fluid=fluid, P=P, T=T, h=h, s=s)
+        u = PropsSI("U", "P", P, "T", T, name)
+        rho = PropsSI("D", "P", P, "T", T, name)
+        return State(fluid=fluid, P=P, T=T, h=h, s=s, u=u, rho=rho)
 
-    # Gás ideal: h e s relativos a um estado de referência (T_ref, P_ref).
+    # Gás ideal: h, u e s relativos a um estado de referência (T_ref, P_ref).
     # Os módulos usam apenas diferenças, então a referência se cancela.
     cp = cp0(fluid, T)
     R = gas_constant(fluid)
     T_ref, P_ref = 298.15, 101325.0
     h = cp * (T - T_ref)
     s = cp * _log(T / T_ref) - R * _log(P / P_ref)
-    return State(fluid=fluid, P=P, T=T, h=h, s=s)
+    rho = P / (R * T)  # Pv = RT
+    u = h - R * T  # h = u + Pv = u + RT
+    return State(fluid=fluid, P=P, T=T, h=h, s=s, u=u, rho=rho)
 
 
 def enthalpy_from_Ps(fluid: str, P: float, s: float, model: PropertyModel) -> float:
