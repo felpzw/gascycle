@@ -52,3 +52,37 @@ export async function computeCompression(
   const { data } = await api.post<CompressionOutput>('/api/compression', input)
   return data
 }
+
+// ===== Módulo 2 — Enchimento de reservatório =====
+
+export interface FillingInput {
+  fluid: string
+  model: PropertyModel
+  volume: number // L
+  P_initial: number // kPa
+  T_initial: number // °C
+  P_line: number // kPa
+  T_line: number // °C
+  P_final: number // kPa
+  heat: number // kJ
+  mass_flow_in?: number | null // kg/s (opcional)
+}
+
+export interface FillingOutput {
+  fluid: string
+  model: PropertyModel
+  m_initial: number // kg
+  m_final: number // kg
+  m_added: number // kg
+  T_final: number // °C
+  u_initial: number // kJ/kg
+  u_final: number // kJ/kg
+  fill_time: number | null // s
+}
+
+export async function computeFilling(
+  input: FillingInput,
+): Promise<FillingOutput> {
+  const { data } = await api.post<FillingOutput>('/api/filling', input)
+  return data
+}

@@ -2,12 +2,31 @@ import { useEffect, useState } from 'react'
 import { Activity, Wind } from 'lucide-react'
 import { getHealth } from './lib/api'
 import { CompressionSimulator } from './components/CompressionSimulator'
+import { FillingSimulator } from './components/FillingSimulator'
 
 type Status = 'checking' | 'online' | 'offline'
+
+const MODULES = [
+  {
+    id: 'compression',
+    tab: 'Módulo 1 — Compressão',
+    title: 'Módulo 1 — Compressão',
+    desc: 'Volume de controle em regime permanente: balanço de energia (1ª Lei) em compressor adiabático com eficiência isentrópica.',
+    render: () => <CompressionSimulator />,
+  },
+  {
+    id: 'filling',
+    tab: 'Módulo 2 — Enchimento',
+    title: 'Módulo 2 — Enchimento de reservatório',
+    desc: 'Volume de controle transiente (tanque rígido, W = 0): estado final pelo balanço integrado de massa e energia a partir de uma linha de alimentação.',
+    render: () => <FillingSimulator />,
+  },
+] as const
 
 function App() {
   const [status, setStatus] = useState<Status>('checking')
   const [version, setVersion] = useState<string>('')
+  const [active, setActive] = useState<(typeof MODULES)[number]['id']>('compression')
 
   useEffect(() => {
     getHealth()
@@ -24,6 +43,8 @@ function App() {
       : status === 'offline'
         ? 'text-red-400'
         : 'text-amber-400'
+
+  const current = MODULES.find((m) => m.id === active)!
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
@@ -47,17 +68,29 @@ function App() {
             </span>
           </div>
         </div>
+        <nav className="mx-auto flex max-w-5xl gap-1 px-6">
+          {MODULES.map((m) => (
+            <button
+              key={m.id}
+              onClick={() => setActive(m.id)}
+              className={`-mb-px border-b-2 px-4 py-2 text-sm transition ${
+                active === m.id
+                  ? 'border-cyan-400 text-cyan-300'
+                  : 'border-transparent text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              {m.tab}
+            </button>
+          ))}
+        </nav>
       </header>
 
       <main className="mx-auto max-w-5xl px-6 py-10">
         <div className="mb-6">
-          <h2 className="text-lg font-semibold">Módulo 1 — Compressão</h2>
-          <p className="text-sm text-slate-400">
-            Volume de controle em regime permanente: balanço de energia (1ª Lei)
-            em compressor adiabático com eficiência isentrópica.
-          </p>
+          <h2 className="text-lg font-semibold">{current.title}</h2>
+          <p className="text-sm text-slate-400">{current.desc}</p>
         </div>
-        <CompressionSimulator />
+        {current.render()}
       </main>
     </div>
   )
