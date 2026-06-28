@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Activity, Gauge, Wind } from 'lucide-react'
+import { Activity, Wind } from 'lucide-react'
 import { getHealth } from './lib/api'
+import { CompressionSimulator } from './components/CompressionSimulator'
 
 type Status = 'checking' | 'online' | 'offline'
 
@@ -29,46 +30,34 @@ function App() {
       <header className="border-b border-slate-800">
         <div className="mx-auto flex max-w-5xl items-center gap-3 px-6 py-4">
           <Wind className="h-7 w-7 text-cyan-400" />
-          <div>
+          <div className="flex-1">
             <h1 className="text-xl font-semibold tracking-tight">GasCycle Suite</h1>
             <p className="text-sm text-slate-400">
               Simulação e dimensionamento de sistemas de gases
             </p>
           </div>
-        </div>
-      </header>
-
-      <main className="mx-auto max-w-5xl px-6 py-10">
-        <section className="mb-10 flex items-center gap-2 rounded-lg border border-slate-800 bg-slate-900 px-4 py-3">
-          <Activity className={`h-5 w-5 ${statusColor}`} />
-          <span className="text-sm">
-            Backend:{' '}
+          <div className="flex items-center gap-2 text-sm">
+            <Activity className={`h-4 w-4 ${statusColor}`} />
             <span className={statusColor}>
               {status === 'checking'
                 ? 'verificando...'
                 : status === 'online'
-                  ? `online (v${version})`
+                  ? `online v${version}`
                   : 'offline'}
             </span>
-          </span>
-        </section>
+          </div>
+        </div>
+      </header>
 
-        <section className="grid gap-4 sm:grid-cols-3">
-          {[
-            { title: 'Compressão', desc: 'Volume de controle em regime permanente' },
-            { title: 'Enchimento', desc: 'Volume de controle transiente' },
-            { title: 'Atuador', desc: 'Sistema fechado — trabalho de fronteira' },
-          ].map((m) => (
-            <div
-              key={m.title}
-              className="rounded-xl border border-slate-800 bg-slate-900 p-5"
-            >
-              <Gauge className="mb-3 h-6 w-6 text-cyan-400" />
-              <h2 className="font-medium">{m.title}</h2>
-              <p className="mt-1 text-sm text-slate-400">{m.desc}</p>
-            </div>
-          ))}
-        </section>
+      <main className="mx-auto max-w-5xl px-6 py-10">
+        <div className="mb-6">
+          <h2 className="text-lg font-semibold">Módulo 1 — Compressão</h2>
+          <p className="text-sm text-slate-400">
+            Volume de controle em regime permanente: balanço de energia (1ª Lei)
+            em compressor adiabático com eficiência isentrópica.
+          </p>
+        </div>
+        <CompressionSimulator />
       </main>
     </div>
   )
