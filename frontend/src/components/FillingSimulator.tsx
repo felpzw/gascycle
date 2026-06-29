@@ -8,6 +8,7 @@ import {
   type FillingOutput,
 } from '../lib/api'
 import { FluidSelect, ModelToggle, NumberField, ResultRow } from './ui'
+import { PlotlyChart } from './PlotlyChart'
 
 const DEFAULTS: FillingInput = {
   fluid: 'R134a',
@@ -59,6 +60,7 @@ export function FillingSimulator() {
   }
 
   return (
+    <div className="space-y-6">
     <div className="grid gap-6 md:grid-cols-2">
       <form
         onSubmit={onSubmit}
@@ -182,6 +184,33 @@ export function FillingSimulator() {
           </p>
         )}
       </div>
+    </div>
+      {result && (
+        <div className="rounded-xl border border-slate-800 bg-slate-900 p-6">
+          <PlotlyChart
+            height={300}
+            data={[
+              {
+                type: 'bar',
+                x: ['Massa inicial', 'Massa adicionada', 'Massa final'],
+                y: [result.m_initial, result.m_added, result.m_final],
+                marker: { color: ['#64748b', '#22d3ee', '#f59e0b'] },
+                text: [
+                  result.m_initial.toFixed(3),
+                  result.m_added.toFixed(3),
+                  result.m_final.toFixed(3),
+                ],
+                textposition: 'outside',
+              },
+            ]}
+            layout={{
+              title: { text: 'Balanço de massa do enchimento', font: { size: 14 } },
+              yaxis: { title: { text: 'massa [kg]' }, rangemode: 'tozero' },
+              showlegend: false,
+            }}
+          />
+        </div>
+      )}
     </div>
   )
 }

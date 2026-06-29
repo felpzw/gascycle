@@ -35,6 +35,9 @@ class CompressionResult:
     delta_h_isentropic: float  # J/kg
     specific_work: float  # J/kg (trabalho fornecido ao fluido, positivo)
     power: float  # W (potência de eixo requerida, positiva)
+    # entropia (para o diagrama T-s)
+    s_in: float  # J/kg·K
+    s_out: float  # J/kg·K (estado real de saída)
 
 
 def compress(
@@ -62,6 +65,7 @@ def compress(
         h2 = state1.h + dh_s / eta_isen
         T2 = props.temperature_from_Ph(fluid, P_out, h2, model)
         T2s = props.temperature_from_Ph(fluid, P_out, h2s, model)
+        s2 = props.coolprop("S", "P", P_out, "H", h2, fluid)
     else:
         # Gás ideal: relação isentrópica de gás perfeito.
         cp = props.cp0(fluid, T_in)
@@ -72,6 +76,10 @@ def compress(
         dh = dh_s / eta_isen
         T2 = T_in + dh / cp
         h2 = state1.h + dh
+        # Δs de gás ideal entre estados real de saída e entrada.
+        from math import log
+
+        s2 = state1.s + cp * log(T2 / T_in) - R * log(P_out / P_in)
 
     dh = h2 - state1.h
     power = mass_flow * dh  # W (positivo = potência requerida)
@@ -88,4 +96,6 @@ def compress(
         delta_h_isentropic=dh_s,
         specific_work=dh,
         power=power,
+        s_in=state1.s,
+        s_out=s2,
     )

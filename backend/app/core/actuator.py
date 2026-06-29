@@ -50,6 +50,7 @@ class ActuatorResult:
     work: float  # J (∫P dV, + = realizado pelo gás)
     delta_U: float  # J
     heat: float  # J
+    path: list[tuple[float, float]]  # caminho P-v: (v [m³/kg], P [Pa])
 
 
 def run(
@@ -85,6 +86,7 @@ def run(
         delta_U = mass * (u2 - state1.u)
 
     heat = delta_U + work  # Q = ΔU + W
+    path = _path(fluid, mass, P1, T1, V1, V2, P2, process, n, model)
 
     return ActuatorResult(
         model=model,
@@ -100,7 +102,40 @@ def run(
         work=work,
         delta_U=delta_U,
         heat=heat,
+        path=path,
     )
+
+
+def _path(
+    fluid: str,
+    mass: float,
+    P1: float,
+    T1: float,
+    V1: float,
+    V2: float,
+    P2: float,
+    process: Process,
+    n: float | None,
+    model: PropertyModel,
+    n_points: int = 60,
+) -> list[tuple[float, float]]:
+    """Caminho P-v do processo: lista de (v [m³/kg], P [Pa]) de V1 a V2."""
+    points: list[tuple[float, float]] = []
+    for i in range(n_points):
+        V = V1 + (V2 - V1) * i / (n_points - 1)
+        v = V / mass
+        if process is Process.ISOBARIC:
+            P = P1
+        elif process is Process.ISOTHERMAL:
+            if model is PropertyModel.REAL:
+                P = props.coolprop("P", "T", T1, "D", mass / V, fluid)
+            else:
+                P = P1 * V1 / V  # PV = C
+        else:  # POLYTROPIC: P V^n = C (vale para ambos os modelos)
+            assert n is not None
+            P = P1 * (V1 / V) ** n
+        points.append((v, P))
+    return points
 
 
 def _ideal(
