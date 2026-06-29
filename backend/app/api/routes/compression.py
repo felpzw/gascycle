@@ -9,6 +9,7 @@ from app.schemas.compression import (
     CompressionOutput,
     FluidsResponse,
     KELVIN,
+    TsPoint,
 )
 
 router = APIRouter(prefix="/api/compression", tags=["compression"])
@@ -36,6 +37,8 @@ def compute_compression(payload: CompressionInput) -> CompressionOutput:
     except (ValueError, NotImplementedError) as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
 
+    s_in = result.s_in / 1000.0  # J/kg·K -> kJ/kg·K
+    s_out = result.s_out / 1000.0
     return CompressionOutput(
         fluid=result.fluid,
         model=result.model,
@@ -45,4 +48,9 @@ def compute_compression(payload: CompressionInput) -> CompressionOutput:
         T_out_isentropic=result.T_out_isentropic - KELVIN,
         enthalpy_change=result.delta_h / 1000.0,
         enthalpy_change_isentropic=result.delta_h_isentropic / 1000.0,
+        ts_diagram=[
+            TsPoint(label="1 (entrada)", s=s_in, T=result.T_in - KELVIN),
+            TsPoint(label="2s (isentrópico)", s=s_in, T=result.T_out_isentropic - KELVIN),
+            TsPoint(label="2 (real)", s=s_out, T=result.T_out - KELVIN),
+        ],
     )

@@ -103,6 +103,41 @@ def coolprop(output: str, n1: str, v1: float, n2: str, v2: float, fluid: str) ->
     return PropsSI(output, n1, v1, n2, v2, _coolprop_name(fluid))
 
 
+def saturation_dome(
+    fluid: str, diagram: str, n: int = 70
+) -> tuple[list[tuple[float, float]], list[tuple[float, float]]]:
+    """Pontos do domo de saturação (líquido e vapor saturados) em SI.
+
+    diagram="pv": pontos (v [m³/kg], P [Pa]); diagram="ts": pontos (s [J/kg·K], T [K]).
+    Amostra T do ponto triplo ao ponto crítico. Pontos que a CoolProp não resolve
+    são silenciosamente ignorados, de modo que fluidos sem domo bem definido (ou
+    pseudopuros) retornam o que for válido.
+    """
+    name = _coolprop_name(fluid)
+    t_triple = PropsSI("Ttriple", name)
+    t_crit = PropsSI("Tcrit", name)
+    lo = t_triple + 0.5
+    hi = t_crit - 0.5
+    step = (hi - lo) / (n - 1)
+    liquid: list[tuple[float, float]] = []
+    vapor: list[tuple[float, float]] = []
+    for i in range(n):
+        T = lo + i * step
+        try:
+            if diagram == "pv":
+                P = PropsSI("P", "T", T, "Q", 0, name)
+                v_l = 1.0 / PropsSI("D", "T", T, "Q", 0, name)
+                v_v = 1.0 / PropsSI("D", "T", T, "Q", 1, name)
+                liquid.append((v_l, P))
+                vapor.append((v_v, P))
+            else:  # ts
+                liquid.append((PropsSI("S", "T", T, "Q", 0, name), T))
+                vapor.append((PropsSI("S", "T", T, "Q", 1, name), T))
+        except ValueError:
+            continue
+    return liquid, vapor
+
+
 def state_from_PT(fluid: str, P: float, T: float, model: PropertyModel) -> State:
     """Estado completo a partir de pressão e temperatura."""
     name = _coolprop_name(fluid)
