@@ -58,6 +58,7 @@ entre o motor de cálculo (backend) e a interface (frontend).
 | :--- | :--- | :--- |
 | Frontend | React 19 + TypeScript + Vite | Interface reativa (SPA) |
 | Estilo | TailwindCSS v4 | Sistema de design utilitário |
+| Gráficos | Plotly.js (carga sob demanda) | Diagramas P-v e T-s |
 | Comunicação | Axios + proxy do Vite | Cliente HTTP `/api → :8000` |
 | Backend | FastAPI (Python 3.12) | API REST e orquestração |
 | Propriedades | CoolProp 6.7.0 | Equações de estado (gás real) |
@@ -307,6 +308,11 @@ Base local: `http://localhost:8000` — documentação interativa em `/docs` (Sw
 | `POST` | `/api/compression` | Módulo 1 — Compressão |
 | `POST` | `/api/filling` | Módulo 2 — Enchimento |
 | `POST` | `/api/actuator` | Módulo 3 — Atuador |
+| `GET` | `/api/diagrams/saturation` | Curva de saturação (domo) |
+
+As respostas dos Módulos 1 e 3 incluem os pontos para os diagramas: o Módulo 1
+retorna os estados do diagrama $T\text{-}s$ (1, 2s isentrópico e 2 real) e o
+Módulo 3 retorna o caminho $P\text{-}v$ amostrado do processo.
 
 **Exemplo — requisição/resposta do Módulo 1:**
 
@@ -329,7 +335,38 @@ Base local: `http://localhost:8000` — documentação interativa em `/docs` (Sw
 
 ---
 
-## 8. Conclusões
+## 8. Visualização — Diagramas P-v e T-s
+
+A interface apresenta, para cada módulo, o diagrama termodinâmico pertinente,
+renderizado com Plotly.js a partir dos dados calculados pelo backend.
+
+- **Módulo 1 — Diagrama $T\text{-}s$.** Mostra o estado de entrada (1), o estado
+  isentrópico de saída (2s, sobre a mesma vertical de entropia de 1) e o estado
+  real de saída (2), deslocado para a direita pela geração de entropia do processo
+  irreversível ($s_2 > s_1$). A área entre os processos ilustra a irreversibilidade.
+
+- **Módulo 3 — Diagrama $P\text{-}v$.** Traça o caminho do processo entre os
+  estados 1 e 2; a **área sob a curva equivale ao trabalho específico**,
+  $w = \int P\,dv$. Verificou-se numericamente que a integração trapezoidal dos
+  pontos retornados reproduz o trabalho calculado pelo motor: para a expansão
+  politrópica do ar ($n = 1{,}3$, $r = 2$), $62{,}877$ kJ (área) contra
+  $62{,}875$ kJ (motor) — concordância na quarta casa.
+
+- **Curva de saturação.** Quando o modelo de gás real é selecionado, sobrepõe-se
+  o domo de saturação do fluido (ramos de líquido e vapor saturados, amostrados do
+  ponto triplo ao ponto crítico), situando os estados em relação à região
+  bifásica. No modelo de gás ideal o domo é omitido, por coerência de referência.
+
+- **Módulo 2.** Apresenta o balanço de massa do enchimento (massa inicial,
+  adicionada e final) em gráfico de barras.
+
+A biblioteca Plotly é carregada sob demanda (*code-splitting* por importação
+dinâmica), mantendo o *bundle* inicial da aplicação em torno de 82 kB
+comprimidos.
+
+---
+
+## 9. Conclusões
 
 A plataforma cumpre os objetivos propostos, resolvendo os três módulos da Primeira
 Lei sob modelos de gás ideal e gás real com rigor verificável. Os métodos
@@ -341,8 +378,6 @@ $0{,}0025\%$ no limite de baixa pressão — confere confiança aos resultados.
 
 ### Trabalhos futuros
 
-- **Visualização interativa:** diagramas $P\text{-}v$ (com área correspondente ao
-  trabalho) e $T\text{-}s$, incluindo a curva de saturação (domo bifásico).
 - **Suíte de testes automatizados** (`pytest`) cobrindo os casos-âncora.
 - **Persistência** de simulações (PostgreSQL) para histórico de dimensionamento.
 - **Análise transiente resolvida no tempo** do enchimento via integração de EDO.

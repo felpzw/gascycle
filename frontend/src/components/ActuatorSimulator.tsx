@@ -9,6 +9,7 @@ import {
   type Process,
 } from '../lib/api'
 import { FluidSelect, ModelToggle, NumberField, ResultRow } from './ui'
+import { PvDiagram } from './PvDiagram'
 
 const DEFAULTS: ActuatorInput = {
   fluid: 'Air',
@@ -64,6 +65,7 @@ export function ActuatorSimulator() {
   }
 
   return (
+    <div className="space-y-6">
     <div className="grid gap-6 md:grid-cols-2">
       <form
         onSubmit={onSubmit}
@@ -184,6 +186,12 @@ export function ActuatorSimulator() {
           </p>
         )}
       </div>
+    </div>
+      {result && (
+        <div className="rounded-xl border border-slate-800 bg-slate-900 p-6">
+          <PvDiagram result={result} />
+        </div>
+      )}
     </div>
   )
 }

@@ -11,8 +11,22 @@ Especificação técnica completa em [PROJECT.md](PROJECT.md).
 ```
 gascycle/
 ├── backend/    # API FastAPI + motor de cálculo (CoolProp, NumPy, SciPy)
-└── frontend/   # SPA React + TypeScript + Vite + TailwindCSS
+└── frontend/   # SPA React + TypeScript + Vite + TailwindCSS + Plotly
 ```
+
+## Módulos
+
+1. **Compressão** — volume de controle em regime permanente (1ª Lei + eficiência
+   isentrópica). Diagrama **T-s** (isentrópico vs real).
+2. **Enchimento de reservatório** — volume de controle transiente (tanque rígido).
+   Gráfico de balanço de massa.
+3. **Atuador mecânico** — sistema fechado (isobárico/isotérmico/politrópico).
+   Diagrama **P-v** com a área correspondente ao trabalho.
+
+Cada módulo opera sob o modelo de **gás ideal** ou **gás real** (CoolProp). Os
+diagramas P-v e T-s sobrepõem a curva de saturação do fluido quando disponível.
+
+Documento técnico completo: [RELATORIO.md](RELATORIO.md).
 
 ## Como rodar (desenvolvimento)
 

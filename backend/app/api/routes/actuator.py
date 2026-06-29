@@ -3,7 +3,7 @@
 from fastapi import APIRouter, HTTPException
 
 from app.core import actuator as engine
-from app.schemas.actuator import ActuatorInput, ActuatorOutput
+from app.schemas.actuator import ActuatorInput, ActuatorOutput, PvPoint
 from app.schemas.compression import KELVIN
 
 router = APIRouter(prefix="/api/actuator", tags=["actuator"])
@@ -37,4 +37,5 @@ def compute_actuator(payload: ActuatorInput) -> ActuatorOutput:
         work=result.work / 1000.0,  # J -> kJ
         delta_U=result.delta_U / 1000.0,
         heat=result.heat / 1000.0,
+        pv_diagram=[PvPoint(v=v, P=P / 1000.0) for v, P in result.path],  # Pa -> kPa
     )

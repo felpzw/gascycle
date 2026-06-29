@@ -35,6 +35,13 @@ class ActuatorInput(BaseModel):
             )
 
 
+class PvPoint(BaseModel):
+    """Ponto do diagrama P-v."""
+
+    v: float  # m³/kg
+    P: float  # kPa
+
+
 class ActuatorOutput(BaseModel):
     fluid: str
     model: PropertyModel
@@ -46,3 +53,6 @@ class ActuatorOutput(BaseModel):
     work: float = Field(..., description="Trabalho de fronteira ∫P dV [kJ]")
     delta_U: float = Field(..., description="Variação de energia interna [kJ]")
     heat: float = Field(..., description="Calor trocado Q [kJ]")
+    pv_diagram: list[PvPoint] = Field(
+        default_factory=list, description="Caminho P-v do processo (v em m³/kg, P em kPa)"
+    )

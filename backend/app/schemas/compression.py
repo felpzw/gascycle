@@ -36,6 +36,14 @@ class CompressionInput(BaseModel):
             )
 
 
+class TsPoint(BaseModel):
+    """Ponto do diagrama T-s."""
+
+    label: str
+    s: float  # kJ/kg·K
+    T: float  # °C
+
+
 class CompressionOutput(BaseModel):
     fluid: str
     model: PropertyModel
@@ -45,6 +53,9 @@ class CompressionOutput(BaseModel):
     T_out_isentropic: float = Field(..., description="Temperatura isentrópica [°C]")
     enthalpy_change: float = Field(..., description="Δh real [kJ/kg]")
     enthalpy_change_isentropic: float = Field(..., description="Δh isentrópico [kJ/kg]")
+    ts_diagram: list[TsPoint] = Field(
+        default_factory=list, description="Pontos do diagrama T-s: 1, 2s, 2"
+    )
 
 
 class FluidsResponse(BaseModel):
