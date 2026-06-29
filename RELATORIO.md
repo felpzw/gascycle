@@ -33,6 +33,41 @@ CoolProp; FastAPI; métodos numéricos.
 
 ---
 
+## Nomenclatura
+
+| Símbolo | Grandeza | Unidade SI |
+| :--- | :--- | :--- |
+| $P$ | pressão | Pa |
+| $T$ | temperatura | K |
+| $v$ | volume específico | m³/kg |
+| $V$ | volume | m³ |
+| $\rho$ | massa específica | kg/m³ |
+| $m$ | massa | kg |
+| $\dot{m}$ | vazão mássica | kg/s |
+| $h$ | entalpia específica | J/kg |
+| $u$ | energia interna específica | J/kg |
+| $s$ | entropia específica | J/(kg·K) |
+| $U$ | energia interna | J |
+| $Q$ | calor | J |
+| $\dot{Q}$ | taxa de transferência de calor | W |
+| $W$ | trabalho | J |
+| $\dot{W}$ | potência | W |
+| $R$ | constante específica do gás | J/(kg·K) |
+| $\bar{R}$ | constante universal dos gases | J/(mol·K) |
+| $M$ | massa molar | kg/mol |
+| $c_p,\,c_{p0}$ | calor específico a pressão constante (real, gás ideal) | J/(kg·K) |
+| $c_v$ | calor específico a volume constante | J/(kg·K) |
+| $k$ | razão de calores específicos, $c_p/c_v$ | — |
+| $n$ | expoente politrópico | — |
+| $r$ | razão de volumes, $V_2/V_1$ | — |
+| $\eta_s$ | eficiência isentrópica | — |
+
+**Subscritos:** $e$ entrada · $s$ saída · $1,2$ estados inicial e final ·
+$2s$ estado isentrópico de saída · $\text{linha}$ linha de alimentação ·
+$vc$ volume de controle · $\text{crit}$ ponto crítico · $\text{sat}$ saturação.
+
+---
+
 ## 1. Introdução e Objetivos
 
 O dimensionamento de sistemas térmicos exige a aplicação sistemática dos balanços
