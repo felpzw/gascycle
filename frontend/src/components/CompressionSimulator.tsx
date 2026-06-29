@@ -8,6 +8,7 @@ import {
   type CompressionOutput,
 } from '../lib/api'
 import { FluidSelect, ModelToggle, NumberField, ResultRow } from './ui'
+import { TsDiagram } from './TsDiagram'
 
 const DEFAULTS: CompressionInput = {
   fluid: 'R134a',
@@ -58,6 +59,7 @@ export function CompressionSimulator() {
   }
 
   return (
+    <div className="space-y-6">
     <div className="grid gap-6 md:grid-cols-2">
       <form
         onSubmit={onSubmit}
@@ -162,6 +164,12 @@ export function CompressionSimulator() {
           </p>
         )}
       </div>
+    </div>
+      {result && (
+        <div className="rounded-xl border border-slate-800 bg-slate-900 p-6">
+          <TsDiagram result={result} />
+        </div>
+      )}
     </div>
   )
 }

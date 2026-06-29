@@ -30,6 +30,12 @@ export interface CompressionInput {
   efficiency_isen: number // 0-1
 }
 
+export interface TsPoint {
+  label: string
+  s: number // kJ/kg·K
+  T: number // °C
+}
+
 export interface CompressionOutput {
   fluid: string
   model: PropertyModel
@@ -39,6 +45,7 @@ export interface CompressionOutput {
   T_out_isentropic: number // °C
   enthalpy_change: number // kJ/kg
   enthalpy_change_isentropic: number // kJ/kg
+  ts_diagram: TsPoint[]
 }
 
 export async function getFluids(): Promise<string[]> {
@@ -102,6 +109,11 @@ export interface ActuatorInput {
   polytropic_n?: number | null
 }
 
+export interface PvPoint {
+  v: number // m³/kg
+  P: number // kPa
+}
+
 export interface ActuatorOutput {
   fluid: string
   model: PropertyModel
@@ -113,11 +125,36 @@ export interface ActuatorOutput {
   work: number // kJ
   delta_U: number // kJ
   heat: number // kJ
+  pv_diagram: PvPoint[]
 }
 
 export async function computeActuator(
   input: ActuatorInput,
 ): Promise<ActuatorOutput> {
   const { data } = await api.post<ActuatorOutput>('/api/actuator', input)
+  return data
+}
+
+// ===== Diagramas — curva de saturação (domo) =====
+
+export interface DomePoint {
+  x: number
+  y: number
+}
+
+export interface SaturationResponse {
+  fluid: string
+  diagram: 'pv' | 'ts'
+  liquid: DomePoint[]
+  vapor: DomePoint[]
+}
+
+export async function getSaturation(
+  fluid: string,
+  diagram: 'pv' | 'ts',
+): Promise<SaturationResponse> {
+  const { data } = await api.get<SaturationResponse>('/api/diagrams/saturation', {
+    params: { fluid, diagram },
+  })
   return data
 }
